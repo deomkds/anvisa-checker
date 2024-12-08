@@ -1,5 +1,6 @@
 # Builtin
 import time
+import os
 
 # First Party
 import config
@@ -11,21 +12,24 @@ from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 
-# Configurações do Selenium.
-if config.OS == "win32":
-    GECKO_DRIVER_PATH = "honestly i dont know at this point"
-else:
-    GECKO_DRIVER_PATH = "/usr/bin/geckodriver"
+# Selenium configs.
+WEBDRIVER_PATH = "/usr/bin/geckodriver" # Used on my Linux machine for testing.
 LOAD_TIME = 10
-log(f"Running on {config.OS} OS.")
+
+log(f"Running on {config.OS.title()}.")
 
 TEST_URL = "https://consultas.anvisa.gov.br/#/documentos/tecnicos/253510002520205/"
 
 def create_webdriver():
-    firefox_options = Options()
-    firefox_options.add_argument("--headless")
-    service = Service(GECKO_DRIVER_PATH)
-    driver = webdriver.Firefox(service=service, options=firefox_options)
+    options = Options()
+    options.add_argument("--headless")
+
+    if config.OS == "win32":
+        driver = webdriver.Edge(options=options)
+    else:
+        service = Service(WEBDRIVER_PATH)
+        driver = webdriver.Firefox(service=service, options=options)
+
     return driver
 
 
@@ -58,16 +62,45 @@ def extract_content(html_content, target_info):
     return infos_list
 
 
+def add_to_csv(data, separator=";", filename="data.csv"):
+    path = os.path.join(config.dest_path, filename)
+    with open(path, "a") as log_file:
+        log_file.write(f"{data}{separator}")
+
+
 def main():
     driver = create_webdriver()
     try:
         content = fetch_webpage(driver, TEST_URL)
-        if content:
-            record_number = extract_content(content, "Expediente")
-            record_date = extract_content(content, "Data do Expediente")
 
-            for petition in zip(record_number, record_date):
-                log(f"Expediente: {petition[0]} | Data: {petition[1]}")
+        if content:
+            headers = [
+                "Expediente", "Data do Expediente", "Nº do Protocolo", "Situação atual", "Assunto",
+                "Dados da Publicação (RE - Data Resolução - DOU - Data Publicação)"
+            ]
+
+            table = []
+
+            for num in range(6):
+                extracted_content = extract_content(content, headers[num])
+                if not extracted_content:
+                    log(f"FATAL: Zero content retrieved from ANVISA's website.", bail=True)
+                table.append(extracted_content)
+
+            extracted_date = extract_content(content, "Data do Processo")
+            table[1].insert(0, extracted_date[0])
+
+            for num, header in enumerate(headers):
+                table[num].insert(0, header)
+
+            for col in range(len(table[0])):
+                log(f"Column: {col}")
+                for row in range(6):
+                    log(f"Row: {row}")
+                    info = table[row][col].replace("\n", " ").replace("?", "").strip()
+                    log(f"Info: {info}")
+                    sep = "\n" if row == 5 else ";"
+                    add_to_csv(info, sep)
 
         else:
             log("Falha na extração do conteúdo da página.")
