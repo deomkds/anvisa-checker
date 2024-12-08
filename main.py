@@ -1,6 +1,12 @@
+# Builtin
 import time
 import sys
 
+# First Party
+import config
+from simplelog import log
+
+# Third Party
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
@@ -12,10 +18,6 @@ LOAD_TIME = 10                              # Tempo de carregamento da página, 
                                             # Use números maiores em conexões mais lentas.
 
 TEST_URL = "https://consultas.anvisa.gov.br/#/documentos/tecnicos/253510002520205/"
-
-
-def bail():
-    sys.exit()
 
 
 def create_webdriver():
@@ -32,7 +34,7 @@ def fetch_webpage(driver, page):
         time.sleep(LOAD_TIME)
         return driver.page_source
     except Exception as e:
-        print(f"Erro ao carregar página: {e}")
+        log(f"Erro ao carregar página: {e}")
         return None
 
 
@@ -72,15 +74,10 @@ def main():
             petitions = extract_tag_content(content)
 
             for petition in petitions:
-                print(f"Expediente: {petition[0]} | Data: {petition[1]}")
+                log(f"Expediente: {petition[0]} | Data: {petition[1]}")
 
         else:
-            print("Falha na extração do conteúdo da página.")
-
-        bail()
-
-        with open("file.txt", "a") as log_file:
-            log_file.write(f"{content}\n")
+            log("Falha na extração do conteúdo da página.")
 
     finally:
         driver.quit()
