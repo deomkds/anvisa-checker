@@ -38,30 +38,21 @@ def fetch_webpage(driver, page):
         return None
 
 
-def extract_tag_content(html_content):
+def extract_content(html_content, target_info):
+    # target_info can be: "Expediente", "Data do Expediente".
+
     soup = BeautifulSoup(html_content, 'html.parser')
 
-    code_list = []
-    date_list = []
+    infos_list = []
 
-    expedientes = soup.find_all("label", string="Expediente")
-    datas = soup.find_all("label", string="Data do Expediente")
+    entries = soup.find_all("label", string=target_info)
 
-    for expediente in expedientes:
-        expediente = expediente.next_siblings
+    for entry in entries:
+        entry = entry.next_siblings
 
-        for info in expediente:
+        for info in entry:
             if info != "\n":
-                code_list.append(info.get_text())
-
-    for data in datas:
-        data = data.next_siblings
-
-        for info in data:
-            if info != "\n":
-                date_list.append(info.get_text())
-
-    infos_list = zip(code_list, date_list)
+                infos_list.append(info.get_text())
 
     return infos_list
 
@@ -71,7 +62,10 @@ def main():
     try:
         content = fetch_webpage(driver, TEST_URL)
         if content:
-            petitions = extract_tag_content(content)
+            record_number = extract_content(content, "Expediente")
+            record_date = extract_content(content, "Data do Expediente")
+
+            petitions = zip(record_number, record_date)
 
             for petition in petitions:
                 log(f"Expediente: {petition[0]} | Data: {petition[1]}")
