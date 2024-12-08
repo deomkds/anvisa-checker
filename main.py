@@ -1,6 +1,5 @@
 # Builtin
 import time
-import sys
 
 # First Party
 import config
@@ -13,12 +12,14 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 
 # Configurações do Selenium.
-GECKO_DRIVER_PATH = "/usr/bin/geckodriver"  # Caminho do driver no computador.
-LOAD_TIME = 10                              # Tempo de carregamento da página, em segundos.
-                                            # Use números maiores em conexões mais lentas.
+if config.OS == "win32":
+    GECKO_DRIVER_PATH = "honestly i dont know at this point"
+else:
+    GECKO_DRIVER_PATH = "/usr/bin/geckodriver"
+LOAD_TIME = 10
+log(f"Running on {config.OS} OS.")
 
 TEST_URL = "https://consultas.anvisa.gov.br/#/documentos/tecnicos/253510002520205/"
-
 
 def create_webdriver():
     firefox_options = Options()
@@ -65,9 +66,7 @@ def main():
             record_number = extract_content(content, "Expediente")
             record_date = extract_content(content, "Data do Expediente")
 
-            petitions = zip(record_number, record_date)
-
-            for petition in petitions:
+            for petition in zip(record_number, record_date):
                 log(f"Expediente: {petition[0]} | Data: {petition[1]}")
 
         else:
