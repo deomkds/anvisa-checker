@@ -14,7 +14,7 @@ from selenium.webdriver.firefox.options import Options
 
 # Selenium configs.
 WEBDRIVER_PATH = "/usr/bin/geckodriver" # Used on my Linux machine for testing.
-LOAD_TIME = 10
+LOAD_TIME = 7
 
 log(f"Running on {config.OS.title()}.")
 
@@ -57,7 +57,13 @@ def add_to_csv(data, separator=";", filename="data.csv"):
         log_file.write(f"{data}{separator}")
 
 
-def extract_petitions(driver, url):
+def load_drugs(file_path):
+    with open(file_path) as urls_db:
+        lines = urls_db.readlines()
+    log(f"Carregados {len(lines)} medicamento(s).")
+    return [line.split("|") for line in lines]
+
+def extract_petitions(driver, url, drug_name):
     content = fetch_webpage(driver, url)
     if content:
         table = []
@@ -67,35 +73,55 @@ def extract_petitions(driver, url):
         ]
 
         for header in headers:
-            log(f"Extraíndo '{header}'")
             extracted_content = extract_content(content, header)
-            if not extracted_content:
-                log(f"FATAL: Nenhuma informação encontrada.", bail=True)
             table.append(extracted_content)
 
         extracted_date = extract_content(content, "Data do Processo")
         table[1].insert(0, extracted_date[0])
 
+        records_amount = len(table[0])
+        log(f"Quantidade de expedientes: '{records_amount}'.")
+        if records_amount < 1:
+            log(f"Nenhuma informação encontrada.")
+            return 1
+
+        drug_name_list = [drug_name] * records_amount
+        table.insert(0, drug_name_list)
+        headers.insert(0, "Medicamento")
+
         for num, header in enumerate(headers):
             table[num].insert(0, header)
 
-        for col in range(len(table[0])):
-            log(f"Column: {col + 1}")
+        records_amount = len(table[0])
+
+        for col in range(records_amount):
             for row in range(len(headers)):
-                log(f"Row: {row + 1}")
                 info = table[row][col].replace("\n", " ").replace("?", "").strip()
-                log(f"Info: {info}")
-                sep = "\n" if row == 5 else ";"
+                sep = "\n" if row == (len(headers) - 1) else ";"
                 add_to_csv(info, sep)
+                log(f"Column: {col + 1} | Row: {row + 1} | Info: '{info}'")
+
+        return 0
 
     else:
         log("FATAL: Falha na extração do conteúdo da página.")
+        return 2
 
 
 def main():
+    drugs = load_drugs("endereços.txt")
     driver = create_webdriver()
-    mepenox = "https://consultas.anvisa.gov.br/#/documentos/tecnicos/253510002520205/"
-    extract_petitions(driver, mepenox)
+
+    for drug in drugs:
+        drug_name = drug[0].strip()
+        process_n = drug[1].replace(".", "").replace("/", "").replace("-", "").strip()
+        log(f"Buscando informações do medicamento '{drug_name}' (N.º de Processo: '{process_n}').")
+        final_url = f"https://consultas.anvisa.gov.br/#/documentos/tecnicos/{process_n}/"
+
+        returned_value = 1
+        while returned_value == 1:
+            returned_value = extract_petitions(driver, final_url, drug_name)
+
     driver.quit()
 
 
