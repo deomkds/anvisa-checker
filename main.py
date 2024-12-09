@@ -60,14 +60,9 @@ def add_to_csv(data, separator=";", filename="data.csv"):
 def load_drugs(file_path):
     with open(file_path) as urls_db:
         lines = urls_db.readlines()
-
-    log(f"Carregados {len(lines)} medicamento(s).")
-    time_string = convert_seconds(len(lines) * LOAD_TIME)
-    log(f"Extração levará {time_string}.")
-
     return [line.split("|") for line in lines]
 
-def extract_petitions(driver, url, drug_name):
+def extract_petitions(driver, url, drug_name, skip_header):
     content = fetch_webpage(driver, url)
     if content:
         table = []
@@ -80,14 +75,18 @@ def extract_petitions(driver, url, drug_name):
             extracted_content = extract_content(content, header)
             table.append(extracted_content)
 
-        extracted_date = extract_content(content, "Data do Processo")
-        table[1].insert(0, extracted_date[0])
-
         records_amount = len(table[0])
         log(f"Quantidade de expedientes: '{records_amount}'.")
         if records_amount < 1:
-            log(f"Nenhuma informação encontrada.")
+            log(f"Nenhuma informação encontrada. Tentando novamente...")
             return 1
+
+        extracted_date = extract_content(content, "Data do Processo")
+        table[1].insert(0, extracted_date[0])
+
+        info_type_list = ["Processo"] + ["Petição"] * (records_amount - 1)
+        table.insert(0, info_type_list)
+        headers.insert(0, "Movimento")
 
         drug_name_list = [drug_name] * records_amount
         table.insert(0, drug_name_list)
@@ -100,10 +99,12 @@ def extract_petitions(driver, url, drug_name):
 
         for col in range(records_amount):
             for row in range(len(headers)):
+                if skip_header and col == 0:
+                    continue
                 info = table[row][col].replace("\n", " ").replace("?", "").strip()
                 sep = "\n" if row == (len(headers) - 1) else ";"
                 add_to_csv(info, sep)
-                log(f"Column: {col + 1} | Row: {row + 1} | Info: '{info}'")
+                # log(f"Column: {col + 1} | Row: {row + 1} | Info: '{info}'")
 
         return 0
 
@@ -125,26 +126,37 @@ def convert_seconds(seconds):
         hours_str = ""
 
     if remaining_minutes > 0:
-        remaining_minutes_str = f"{remaining_minutes} minutos e "
+        remaining_minutes_str = f"{remaining_minutes} minutos"
     else:
         remaining_minutes_str = ""
 
-    return f"{hours_str}{remaining_minutes_str}{remaining_seconds} segundos"
+    if remaining_seconds > 0:
+        remaining_seconds_str = f" e {remaining_seconds} segundos"
+    else:
+        remaining_seconds_str = ""
+
+    return f"{hours_str}{remaining_minutes_str}{remaining_seconds_str}"
 
 
 def main():
     drugs = load_drugs("endereços.txt")
     driver = create_webdriver()
 
-    for drug in drugs:
+    log(f"Carregados {len(drugs)} medicamento(s).")
+
+    for num, drug in enumerate(drugs):
         drug_name = drug[0].strip()
         process_n = drug[1].replace(".", "").replace("/", "").replace("-", "").strip()
-        log(f"Buscando informações do medicamento '{drug_name}' (N.º de Processo: '{process_n}').")
         final_url = f"https://consultas.anvisa.gov.br/#/documentos/tecnicos/{process_n}/"
-
+        skip_header = True if num > 0 else False
         returned_value = 1
+
+        log(f"[{num + 1}/{len(drugs)}] Buscando medicamento '{drug_name}' (Processo: '{process_n}').")
+        time_string = convert_seconds((len(drugs) - num) * LOAD_TIME)
+        log(f"Restam {time_string}.")
+
         while returned_value == 1:
-            returned_value = extract_petitions(driver, final_url, drug_name)
+            returned_value = extract_petitions(driver, final_url, drug_name, skip_header)
 
     driver.quit()
 
