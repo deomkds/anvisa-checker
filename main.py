@@ -60,7 +60,11 @@ def add_to_csv(data, separator=";", filename="data.csv"):
 def load_drugs(file_path):
     with open(file_path) as urls_db:
         lines = urls_db.readlines()
+
     log(f"Carregados {len(lines)} medicamento(s).")
+    time_string = convert_seconds(len(lines) * LOAD_TIME)
+    log(f"Extração levará {time_string}.")
+
     return [line.split("|") for line in lines]
 
 def extract_petitions(driver, url, drug_name):
@@ -106,6 +110,26 @@ def extract_petitions(driver, url, drug_name):
     else:
         log("FATAL: Falha na extração do conteúdo da página.")
         return 2
+
+
+def convert_seconds(seconds):
+    # Conversion
+    minutes = seconds // 60
+    remaining_seconds = seconds % 60
+    hours = minutes // 60
+    remaining_minutes = minutes % 60
+
+    if hours > 0:
+        hours_str = f"{hours} horas, "
+    else:
+        hours_str = ""
+
+    if remaining_minutes > 0:
+        remaining_minutes_str = f"{remaining_minutes} minutos e "
+    else:
+        remaining_minutes_str = ""
+
+    return f"{hours_str}{remaining_minutes_str}{remaining_seconds} segundos"
 
 
 def main():
