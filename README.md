@@ -1,6 +1,9 @@
-# Verificador de Expedientes
+# Extrator de Expedientes da ANVISA
 
-Este script extrai os expedientes de um processo de registro de medicamento do site da Anvisa.
+![showcase](showcase.jpg)
+
+Este script extrai os expedientes de um processo de registro de medicamento do site da [Anvisa](https://consultas.anvisa.gov.br/#/medicamentos/).
+
 Os dados extraídos são salvos em um arquivo CSV para posterior importação no Excel.
 
 ### Dependências:
@@ -24,3 +27,12 @@ Para executar o script no Windows:
    1. Na pasta do script, execute `.\venv\Scripts\python.exe .\main.py`.
 
 OBS.: Também é possível [ativar o ambiente virtual](https://docs.python.org/3/library/venv.html#how-venvs-work).
+
+### Utilização:
+Insira os nomes dos medicamentos e os números de protocolos no arquivo `protocolos.txt`.
+
+Garanta que haja apenas um medicamento por linha e que eles sempre sigam o formato:
+```
+NOME DO MEDICAMENTO | 12345467890
+```
+Utilize a barra em pé para separar o número do protocolo do nome do medicamento.
