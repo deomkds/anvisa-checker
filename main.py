@@ -17,13 +17,12 @@ LOAD_TIME = 7
 
 OS = sys.platform
 DEBUG_MODE = True
-VERBOSE = DEBUG_MODE
 
 home_dir = Path.home()
 dest_path = os.path.join(home_dir, "Desktop/")
 
 def log(text, essential=False, line_break=False, bail=False):
-    if VERBOSE or essential:
+    if DEBUG_MODE or essential:
         moment_obj = datetime.now()
         moment = moment_obj.strftime("%Y-%m-%d %H:%M:%S")
         path = os.path.join(dest_path, 'log.txt')
@@ -53,7 +52,7 @@ def fetch_webpage(driver, page):
         time.sleep(LOAD_TIME)
         return driver.page_source
     except Exception as e:
-        log(f"Erro ao carregar página: {e}")
+        log(f"Erro ao carregar página: {e}", essential=True)
         return None
 
 
@@ -127,7 +126,7 @@ def extract_petitions(driver, url, drug_name, skip_header):
         return 0
 
     else:
-        log("FATAL: Falha na extração do conteúdo da página.")
+        log("FATAL: Falha na extração do conteúdo da página.", essential=True)
         return 2
 
 
@@ -169,9 +168,9 @@ def main():
         skip_header = True if num > 0 else False
         returned_value = 1
 
-        log(f"[{num + 1}/{len(drugs)}] Buscando medicamento '{drug_name}' (Processo: '{process_n}').")
+        log(f"[{num + 1}/{len(drugs)}] Buscando medicamento '{drug_name}' (Processo: '{process_n}').", essential=True)
         time_string = convert_seconds((len(drugs) - num) * LOAD_TIME)
-        log(f"Restam {time_string}.")
+        log(f"Restam {time_string}.", essential=True)
 
         while returned_value == 1:
             returned_value = extract_petitions(driver, final_url, drug_name, skip_header)
