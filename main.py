@@ -46,7 +46,6 @@ def create_webdriver():
         driver = webdriver.Firefox(service=service, options=options)
     return driver
 
-
 def fetch_webpage(driver, page):
     try:
         driver.get(page)
@@ -55,7 +54,6 @@ def fetch_webpage(driver, page):
     except Exception as e:
         log(f"Erro ao carregar página: {e}", essential=True)
         return None
-
 
 def extract_content(html_content, target_info):
     soup = BeautifulSoup(html_content, 'html.parser')
@@ -68,12 +66,10 @@ def extract_content(html_content, target_info):
                 infos_list.append(info.get_text())
     return infos_list
 
-
 def add_to_csv(data, separator=";", filename="data.csv"):
     path = os.path.join(csv_path, filename)
-    with open(path, "w") as log_file:
+    with open(path, "a") as log_file:
         log_file.write(f"{data}{separator}")
-
 
 def load_drugs(file_path):
     with open(file_path, "r", encoding="utf-8") as urls_db:
@@ -130,7 +126,6 @@ def extract_petitions(driver, url, drug_name, skip_header):
         log("FATAL: Falha na extração do conteúdo da página.", essential=True)
         return 2
 
-
 def convert_seconds(seconds):
     # Conversion
     minutes = seconds // 60
@@ -154,7 +149,6 @@ def convert_seconds(seconds):
         remaining_seconds_str = ""
 
     return f"{hours_str}{remaining_minutes_str}{remaining_seconds_str}"
-
 
 def main():
     drugs = load_drugs("protocolos.txt")
