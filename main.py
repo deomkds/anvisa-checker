@@ -1,10 +1,9 @@
 # Builtin
 import time
 import os
-
-# First Party
-import config
-from simplelog import log
+import sys
+from pathlib import Path
+from datetime import datetime
 
 # Third Party
 from bs4 import BeautifulSoup
@@ -16,12 +15,31 @@ from selenium.webdriver.firefox.options import Options
 WEBDRIVER_PATH = "/usr/bin/geckodriver" # Used on my Linux machine for testing.
 LOAD_TIME = 7
 
-log(f"Running on {config.OS.title()}.")
+OS = sys.platform
+DEBUG_MODE = True
+VERBOSE = DEBUG_MODE
+
+home_dir = Path.home()
+dest_path = os.path.join(home_dir, "Desktop/")
+
+def log(text, essential=False, line_break=False, bail=False):
+    if VERBOSE or essential:
+        moment_obj = datetime.now()
+        moment = moment_obj.strftime("%Y-%m-%d %H:%M:%S")
+        path = os.path.join(dest_path, 'log.txt')
+        br = f"\n" if line_break else f""
+        output_line = f"{br}{moment}: {text}"
+        print(output_line)
+        with open(path, "a") as log_file:
+            log_file.write(f"{output_line}\n")
+
+        if bail:
+            sys.exit()
 
 def create_webdriver():
     options = Options()
     options.add_argument("--headless")
-    if config.OS == "win32":
+    if OS == "win32":
         driver = webdriver.Edge(options=options)
     else:
         service = Service(WEBDRIVER_PATH)
@@ -52,7 +70,7 @@ def extract_content(html_content, target_info):
 
 
 def add_to_csv(data, separator=";", filename="data.csv"):
-    path = os.path.join(config.dest_path, filename)
+    path = os.path.join(dest_path, filename)
     with open(path, "a") as log_file:
         log_file.write(f"{data}{separator}")
 
