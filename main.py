@@ -19,13 +19,14 @@ OS = sys.platform
 DEBUG_MODE = True
 
 home_dir = Path.home()
-dest_path = os.path.join(home_dir, "Desktop/")
+log_path = os.path.join(home_dir, "Desktop/")
+csv_path = ""
 
 def log(text, essential=False, line_break=False, bail=False):
     if DEBUG_MODE or essential:
         moment_obj = datetime.now()
         moment = moment_obj.strftime("%Y-%m-%d %H:%M:%S")
-        path = os.path.join(dest_path, 'log.txt')
+        path = os.path.join(log_path, 'log.txt')
         br = f"\n" if line_break else f""
         output_line = f"{br}{moment}: {text}"
         print(output_line)
@@ -69,8 +70,8 @@ def extract_content(html_content, target_info):
 
 
 def add_to_csv(data, separator=";", filename="data.csv"):
-    path = os.path.join(dest_path, filename)
-    with open(path, "a") as log_file:
+    path = os.path.join(csv_path, filename)
+    with open(path, "w") as log_file:
         log_file.write(f"{data}{separator}")
 
 
