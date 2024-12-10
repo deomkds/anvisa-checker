@@ -156,7 +156,7 @@ def convert_seconds(seconds):
 
 
 def main():
-    drugs = load_drugs("endereços.txt")
+    drugs = load_drugs("protocolos.txt")
     driver = create_webdriver()
 
     log(f"Carregados {len(drugs)} medicamento(s).")
