@@ -75,7 +75,7 @@ def add_to_csv(data, separator=";", filename="data.csv"):
 
 
 def load_drugs(file_path):
-    with open(file_path) as urls_db:
+    with open(file_path, "r", encoding="utf-8") as urls_db:
         lines = urls_db.readlines()
     return [line.split("|") for line in lines]
 
