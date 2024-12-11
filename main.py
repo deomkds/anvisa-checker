@@ -66,10 +66,12 @@ def extract_content(html_content, target_info):
                 infos_list.append(info.get_text())
     return infos_list
 
-def add_to_csv(data, separator=";", filename="data.csv"):
-    path = os.path.join(csv_path, filename)
-    with open(path, "a") as log_file:
-        log_file.write(f"{data}{separator}")
+def add_to_csv(data, separator=";", filename="anvisa-data.csv"):
+    file_path = os.path.join(csv_path, filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    with open(file_path, "a") as csv_file:
+        csv_file.write(f"{data}{separator}")
 
 def load_drugs(file_path):
     with open(file_path, "r", encoding="utf-8") as urls_db:
