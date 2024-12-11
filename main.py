@@ -17,17 +17,19 @@ LOAD_TIME = 7
 TIME_PROC = 1.5 # Time to account for processing stuff.
 
 OS = sys.platform
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 home_dir = Path.home()
 log_path = os.path.join(home_dir, "Desktop/")
 csv_path = ""
 
-def log(text, essential=False, line_break=False, bail=False):
+def log(text, essential=False, line_break=False, bail=False, clear=False):
     if DEBUG_MODE or essential:
+        if clear:
+            os.system("cls") if OS == "win" else os.system("clear")
         moment_obj = datetime.now()
         moment = moment_obj.strftime("%Y-%m-%d %H:%M:%S")
-        path = os.path.join(log_path, 'log.txt')
+        path = os.path.join(log_path, 'anvisa-log.txt')
         br = f"\n" if line_break else f""
         output_line = f"{br}{moment}: {text}"
         print(output_line)
@@ -151,9 +153,9 @@ def main():
         skip_header = True if num > 0 else False
         returned_value = 1
 
-        log(f"[{num + 1}/{len(drugs)}] Buscando medicamento '{drug_name}' (Processo: '{process_n}').", essential=True)
+        log(f"[{num + 1}/{len(drugs)}] Buscando medicamento '{drug_name}'.", essential=True)
         time_string = convert_seconds((len(drugs) - num) * (LOAD_TIME + TIME_PROC))
-        log(f"Tempo restante: {time_string}.", essential=True)
+        log(f"Tempo restante: {time_string}.", essential=True, clear=True)
 
         while returned_value == 1:
             returned_value = extract_petitions(driver, final_url, drug_name, skip_header)
