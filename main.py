@@ -141,7 +141,7 @@ def convert_seconds(seconds):
     hours = minutes // 60
     remaining_minutes = minutes % 60
 
-    return f"{hours}h{remaining_minutes}min{remaining_seconds}s"
+    return f"{int(hours):02d}:{int(remaining_minutes):02d}:{int(remaining_seconds):02d}"
 
 def main():
     drugs = load_drugs("protocolos.txt")
@@ -159,7 +159,7 @@ def main():
 
         log(f"[{num + 1}/{len(drugs)}] Buscando medicamento '{drug_name}'.", essential=True)
         time_string = convert_seconds((len(drugs) - num) * (LOAD_TIME + TIME_PROC))
-        log(f"Tempo restante: {time_string}.", essential=True, clear=True)
+        log(f"Tempo restante: {time_string}.", essential=True)
 
         while returned_value == 1:
             returned_value = extract_petitions(driver, final_url, drug_name, skip_header, csv)
