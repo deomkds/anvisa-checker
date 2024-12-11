@@ -25,7 +25,7 @@ log_path = os.path.join(home_dir, "Desktop/")
 def log(text, essential=False, line_break=False, bail=False, clear=False):
     if DEBUG_MODE or essential:
         if clear:
-            os.system("cls") if OS == "win" else os.system("clear")
+            os.system("cls") if OS == "win32" else os.system("clear")
         moment_obj = datetime.now()
         moment = moment_obj.strftime("%Y-%m-%d %H:%M:%S")
         path = os.path.join(log_path, 'anvisa-log.txt')
