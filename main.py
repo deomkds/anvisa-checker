@@ -14,6 +14,7 @@ from selenium.webdriver.firefox.options import Options
 # Selenium configs.
 WEBDRIVER_PATH = "/usr/bin/geckodriver" # Used on my Linux machine for testing.
 LOAD_TIME = 7
+TIME_PROC = 1.5 # Time to account for processing stuff.
 
 OS = sys.platform
 DEBUG_MODE = True
@@ -135,22 +136,7 @@ def convert_seconds(seconds):
     hours = minutes // 60
     remaining_minutes = minutes % 60
 
-    if hours > 0:
-        hours_str = f"{hours} horas, "
-    else:
-        hours_str = ""
-
-    if remaining_minutes > 0:
-        remaining_minutes_str = f"{remaining_minutes} minutos"
-    else:
-        remaining_minutes_str = ""
-
-    if remaining_seconds > 0:
-        remaining_seconds_str = f" e {remaining_seconds} segundos"
-    else:
-        remaining_seconds_str = ""
-
-    return f"{hours_str}{remaining_minutes_str}{remaining_seconds_str}"
+    return f"{hours}h{remaining_minutes}min{remaining_seconds}s"
 
 def main():
     drugs = load_drugs("protocolos.txt")
@@ -166,8 +152,8 @@ def main():
         returned_value = 1
 
         log(f"[{num + 1}/{len(drugs)}] Buscando medicamento '{drug_name}' (Processo: '{process_n}').", essential=True)
-        time_string = convert_seconds((len(drugs) - num) * LOAD_TIME)
-        log(f"Restam {time_string}.", essential=True)
+        time_string = convert_seconds((len(drugs) - num) * (LOAD_TIME + TIME_PROC))
+        log(f"Tempo restante: {time_string}.", essential=True)
 
         while returned_value == 1:
             returned_value = extract_petitions(driver, final_url, drug_name, skip_header)
