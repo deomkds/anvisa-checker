@@ -21,7 +21,6 @@ DEBUG_MODE = False
 
 home_dir = Path.home()
 log_path = os.path.join(home_dir, "Desktop/")
-csv_path = ""
 
 def log(text, essential=False, line_break=False, bail=False, clear=False):
     if DEBUG_MODE or essential:
@@ -69,19 +68,24 @@ def extract_content(html_content, target_info):
                 infos_list.append(info.get_text())
     return infos_list
 
-def add_to_csv(data, separator=";", filename="anvisa-data.csv"):
-    file_path = os.path.join(csv_path, filename)
-    if os.path.exists(file_path):
-        os.remove(file_path)
-    with open(file_path, "a") as csv_file:
-        csv_file.write(f"{data}{separator}")
+def add_to_csv(data, csv, separator=";"):
+    csv.write(f"{data}{separator}")
+
+def open_csv(csv_name="anvisa-data.csv"):
+    if os.path.exists(csv_name):
+        os.remove(csv_name)
+    csv_file = open(csv_name, "w")
+    return csv_file
+
+def close_csv(csv_file):
+    csv_file.close()
 
 def load_drugs(file_path):
     with open(file_path, "r", encoding="utf-8") as urls_db:
         lines = urls_db.readlines()
     return [line.split("|") for line in lines]
 
-def extract_petitions(driver, url, drug_name, skip_header):
+def extract_petitions(driver, url, drug_name, skip_header, csv_file):
     content = fetch_webpage(driver, url)
     if content:
         table = []
@@ -122,8 +126,7 @@ def extract_petitions(driver, url, drug_name, skip_header):
                     continue
                 info = table[row][col].replace("\n", " ").replace("?", "").strip()
                 sep = "\n" if row == (len(headers) - 1) else ";"
-                add_to_csv(info, sep)
-                # log(f"Column: {col + 1} | Row: {row + 1} | Info: '{info}'")
+                add_to_csv(info, csv_file, sep)
 
         return 0
 
@@ -143,6 +146,7 @@ def convert_seconds(seconds):
 def main():
     drugs = load_drugs("protocolos.txt")
     driver = create_webdriver()
+    csv = open_csv()
 
     log(f"Carregados {len(drugs)} medicamento(s).")
 
@@ -158,9 +162,10 @@ def main():
         log(f"Tempo restante: {time_string}.", essential=True, clear=True)
 
         while returned_value == 1:
-            returned_value = extract_petitions(driver, final_url, drug_name, skip_header)
+            returned_value = extract_petitions(driver, final_url, drug_name, skip_header, csv)
 
     driver.quit()
+    close_csv(csv)
 
 
 if __name__ == "__main__":
